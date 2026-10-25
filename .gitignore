@@ -1,0 +1,23 @@
+# Secrets
+.env
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+*_cache/
+
+# Python / Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Knitted HTML (the GitHub-readable version is reports/*.md)
+reports/*.html
+notebooks/*.html
