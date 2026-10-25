@@ -1,0 +1,5 @@
+pandas>=2.2
+matplotlib>=3.8
+jupyter
+fredapi>=0.5
+python-dotenv>=1.0
