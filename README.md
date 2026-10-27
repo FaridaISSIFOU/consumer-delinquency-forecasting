@@ -1,6 +1,6 @@
 # Forecasting US Consumer Loan Delinquency with Macroeconomic Indicators
 
-> **Status: in progress.** Data pipeline, exploratory analysis and feature engineering are complete. Forecasting models are next (see [Roadmap](#roadmap)).
+> **Status: in progress.** Data pipeline, exploratory analysis, feature engineering and the baseline univariate models are complete. Models with macroeconomic predictors are next (see [Roadmap](#roadmap)).
 
 Consumer loan delinquency is an early signal of household financial stress and of future credit losses for banks. This project asks a simple question: **can macroeconomic conditions help forecast the US consumer loan delinquency rate?** The answer matters to central banks, prudential regulators running stress tests, and lenders setting loss provisions.
 
@@ -25,6 +25,7 @@ Quarterly data from [FRED](https://fred.stlouisfed.org/), **1987 Q1 – 2025 Q4*
    - **Stationarity**: Augmented Dickey-Fuller tests. Delinquency and the yield spread are stationary in levels; unemployment, the federal funds rate and consumer confidence are first-differenced.
    - **Seasonality**: Canova-Hansen tests find no seasonal pattern in any series.
    - **Lead-lag structure**: each predictor is pre-whitened with an ARIMA filter before computing cross-correlations with delinquency, so that shared persistence does not create spurious correlations.
+3. **Baseline univariate model** ([report](reports/03_baseline_arma.md) · [source](notebooks/03_baseline_arma.Rmd), R): an ARMA in levels vs an ARIMA in differences, compared on rolling-origin forecasts against a naive benchmark, plus tests of how to treat the COVID-19 break. The winner is the benchmark the macro models have to beat.
 
 ## Findings so far
 
@@ -34,6 +35,10 @@ Quarterly data from [FRED](https://fred.stlouisfed.org/), **1987 Q1 – 2025 Q4*
 - **The federal funds rate and the yield spread** show no robust short-run lead. Instead, delinquency tends to *precede* them (rate cuts one quarter later, a steeper curve about a year later), which is consistent with policy reacting to credit stress.
 - **Consumer confidence** shows no significant lead-lag relationship once pre-whitened.
 - The **COVID-19 period** breaks the usual link between the business cycle and delinquency and needs explicit treatment in the models.
+- **Baseline:** an **ARIMA(1,1,1)** on the change in delinquency beats both a naive forecast and an ARMA(2,1) in levels at every horizon in rolling out-of-sample forecasts. The ARMA in levels keeps reverting to a long-run mean of 3%, well above post-2008 delinquency (2.4% on average in 2011–2019), but it does better during crises. Anticipating those turning points is the job of the macro predictors.
+- **COVID-19** does not change the baseline's dynamics, and a COVID dummy worsens post-COVID forecasts, so the baseline uses the full sample. Pulse dummies will be tested in the multivariate models, where the 2020 unemployment spike is the real problem.
+
+![Baseline forecasts of the delinquency rate](reports/figures/baseline_forecast.png)
 
 The resulting modeling dataset is saved to [`data/model_data.csv`](data/model_data.csv).
 
@@ -42,9 +47,9 @@ The resulting modeling dataset is saved to [`data/model_data.csv`](data/model_da
 - [x] Data pipeline from the FRED API
 - [x] Exploratory analysis
 - [x] Stationarity, seasonality and lead-lag analysis
-- [ ] Baseline univariate models (ARMA) for delinquency
+- [x] Baseline univariate models (ARMA) for delinquency
 - [ ] Models with macroeconomic predictors at the lags identified above
-- [ ] Treatment of the COVID-19 structural break
+- [x] Treatment of the COVID-19 structural break (baseline; pulse dummies to test in the multivariate models)
 - [ ] Out-of-sample evaluation (rolling-origin forecasts vs. a naive benchmark)
 
 ## Repository structure
@@ -55,9 +60,11 @@ The resulting modeling dataset is saved to [`data/model_data.csv`](data/model_da
 │   └── model_data.csv        # stationary, model-ready dataset
 ├── notebooks/
 │   ├── 01_eda.ipynb          # exploratory analysis (Python)
-│   └── 02_feature_engineering.Rmd   # stationarity, seasonality, CCF (R)
+│   ├── 02_feature_engineering.Rmd   # stationarity, seasonality, CCF (R)
+│   └── 03_baseline_arma.Rmd         # baseline model and COVID treatment (R)
 ├── reports/
 │   ├── 02_feature_engineering.md    # rendered R Markdown, readable on GitHub
+│   ├── 03_baseline_arma.md
 │   └── figures/
 ├── src/
 │   └── build_dataset.py      # downloads FRED series and builds data/data.csv
@@ -75,8 +82,9 @@ pip install -r requirements.txt
 jupyter notebook notebooks/01_eda.ipynb
 
 # R (from the notebooks/ folder)
-install.packages(c("forecast", "xts", "ggplot2", "readr", "dplyr", "tseries", "rmarkdown"))
+install.packages(c("forecast", "xts", "ggplot2", "readr", "dplyr", "tseries", "urca", "knitr", "kableExtra", "rmarkdown"))
 rmarkdown::render("02_feature_engineering.Rmd")
+rmarkdown::render("03_baseline_arma.Rmd")
 ```
 
 To refresh the data from FRED, get a free [API key](https://fred.stlouisfed.org/docs/api/api_key.html), copy `.env.example` to `.env`, add your key, and run `python src/build_dataset.py`.
