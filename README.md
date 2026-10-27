@@ -1,8 +1,8 @@
 # Forecasting US Consumer Loan Delinquency with Macroeconomic Indicators
 
-> **Status: in progress.** Data pipeline, exploratory analysis, feature engineering and the baseline univariate models are complete. Models with macroeconomic predictors are next (see [Roadmap](#roadmap)).
+> **Status: analysis complete.** Data pipeline, exploratory analysis, feature engineering, baseline and macroeconomic models, and stress-scenario forecasts are done. A policy note summarising the findings is next (see [Roadmap](#roadmap)).
 
-Consumer loan delinquency is an early signal of household financial stress and of future credit losses for banks. This project asks a simple question: **can macroeconomic conditions help forecast the US consumer loan delinquency rate?** The answer matters to central banks, prudential regulators running stress tests, and lenders setting loss provisions.
+Consumer loan delinquency is an early signal of household financial stress and of future credit losses for banks. This project asks two questions: **can macroeconomic conditions help forecast the US consumer loan delinquency rate**, and **what would the Federal Reserve's 2026 stress-test scenarios mean for it?** The answers matter to central banks, prudential regulators running stress tests, and lenders setting loss provisions.
 
 ![Standardized macroeconomic variables with NBER recessions shaded](reports/figures/overview.png)
 
@@ -26,8 +26,9 @@ Quarterly data from [FRED](https://fred.stlouisfed.org/), **1987 Q1 – 2025 Q4*
    - **Seasonality**: Canova-Hansen tests find no seasonal pattern in any series.
    - **Lead-lag structure**: each predictor is pre-whitened with an ARIMA filter before computing cross-correlations with delinquency, so that shared persistence does not create spurious correlations.
 3. **Baseline univariate model** ([report](reports/03_baseline_arma.md) · [source](notebooks/03_baseline_arma.Rmd), R): an ARMA in levels vs an ARIMA in differences, compared on rolling-origin forecasts against a naive benchmark, plus tests of how to treat the COVID-19 break. The winner is the benchmark the macro models have to beat.
+4. **Macro models and stress scenarios** ([report](reports/04_macro_models_stress_test.md) · [source](notebooks/04_macro_models_stress_test.Rmd), R): the baseline plus macro predictors, evaluated on the same rolling forecasts both with the actual macro path and in real time, a check against the 2008 crisis, and forecasts under the Fed's 2026 baseline and severely adverse scenarios ([data](data/fed_2026/)).
 
-## Findings so far
+## Findings
 
 ![Pre-whitened cross-correlation between the change in unemployment and delinquency](reports/figures/ccf_unemployment.png)
 
@@ -40,6 +41,13 @@ Quarterly data from [FRED](https://fred.stlouisfed.org/), **1987 Q1 – 2025 Q4*
 
 ![Baseline forecasts of the delinquency rate](reports/figures/baseline_forecast.png)
 
+- **Macro model:** once COVID-19 is neutralised with pulse dummies, a 1-point rise in unemployment raises delinquency by about 0.15 points within two quarters. The fed funds rate, consumer confidence and longer unemployment lags add nothing; the yield spread is significant but reflects the Fed's reaction to credit stress.
+- **Forecasting:** macro predictors do **not** improve real-time forecasts over the ARIMA baseline. Even with the actual unemployment path, the gains are small and not significant (largest in the 2008 crisis, -14% error). During COVID-19, policy support broke the unemployment-delinquency link.
+- **2008 check:** the actual rise in unemployment explains only about half of the 2008-09 surge in delinquency, which started before unemployment rose.
+- **Fed 2026 stress scenarios:** under the severely adverse scenario (unemployment peaking at 10% in 2027 Q3), delinquency rises from 2.62% to about **3.25%** through the unemployment channel alone, and plausibly to around 3.9% once a 2008-type housing and credit shock is accounted for. Under the baseline it keeps declining slowly, to about 2.35% by 2029 Q1.
+
+![Delinquency under the Fed's 2026 stress scenarios](reports/figures/stress_scenarios.png)
+
 The resulting modeling dataset is saved to [`data/model_data.csv`](data/model_data.csv).
 
 ## Roadmap
@@ -48,23 +56,28 @@ The resulting modeling dataset is saved to [`data/model_data.csv`](data/model_da
 - [x] Exploratory analysis
 - [x] Stationarity, seasonality and lead-lag analysis
 - [x] Baseline univariate models (ARMA) for delinquency
-- [ ] Models with macroeconomic predictors at the lags identified above
-- [x] Treatment of the COVID-19 structural break (baseline; pulse dummies to test in the multivariate models)
-- [ ] Out-of-sample evaluation (rolling-origin forecasts vs. a naive benchmark)
+- [x] Models with macroeconomic predictors at the lags identified above
+- [x] Treatment of the COVID-19 structural break (no treatment in the baseline; pulse dummies in the macro models)
+- [x] Out-of-sample evaluation (rolling-origin forecasts vs. the baseline, known macro path and real time)
+- [x] Forecasts under the Fed's 2026 supervisory stress scenarios
+- [ ] Policy note
 
 ## Repository structure
 
 ```
 ├── data/
 │   ├── data.csv              # quarterly dataset built from FRED
-│   └── model_data.csv        # stationary, model-ready dataset
+│   ├── model_data.csv        # stationary, model-ready dataset
+│   └── fed_2026/             # Fed 2026 supervisory scenarios (baseline, severely adverse)
 ├── notebooks/
 │   ├── 01_eda.ipynb          # exploratory analysis (Python)
 │   ├── 02_feature_engineering.Rmd   # stationarity, seasonality, CCF (R)
-│   └── 03_baseline_arma.Rmd         # baseline model and COVID treatment (R)
+│   ├── 03_baseline_arma.Rmd         # baseline model and COVID treatment (R)
+│   └── 04_macro_models_stress_test.Rmd  # macro models, evaluation, stress scenarios (R)
 ├── reports/
 │   ├── 02_feature_engineering.md    # rendered R Markdown, readable on GitHub
 │   ├── 03_baseline_arma.md
+│   ├── 04_macro_models_stress_test.md
 │   └── figures/
 ├── src/
 │   └── build_dataset.py      # downloads FRED series and builds data/data.csv
@@ -85,6 +98,7 @@ jupyter notebook notebooks/01_eda.ipynb
 install.packages(c("forecast", "xts", "ggplot2", "readr", "dplyr", "tseries", "urca", "knitr", "kableExtra", "rmarkdown"))
 rmarkdown::render("02_feature_engineering.Rmd")
 rmarkdown::render("03_baseline_arma.Rmd")
+rmarkdown::render("04_macro_models_stress_test.Rmd")
 ```
 
 To refresh the data from FRED, get a free [API key](https://fred.stlouisfed.org/docs/api/api_key.html), copy `.env.example` to `.env`, add your key, and run `python src/build_dataset.py`.
