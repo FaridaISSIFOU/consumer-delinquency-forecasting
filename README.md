@@ -11,13 +11,13 @@ Consumer loan delinquency is an early signal of household financial stress and o
 
 **[Will Rising Unemployment Push Up Consumer Loan Delinquency? Early Warning Signals and the Fed's 2026 Stress Scenarios](policy_note/policy_note.pdf)** ([LaTeX source](policy_note/policy_note.tex))
 
-A short note for lenders and supervisors, written for a general audience, with the technical details in an appendix.
+The results are reported in a short note for lenders and supervisors, written for the understanding of a general audience, keeping the technical details in an appendix.
 
 ![Delinquency under the Fed's 2026 stress scenarios](reports/figures/stress_scenarios.png)
 
 **Key takeaways**
 
-- **Watch delinquency itself.** In real time, adding unemployment does not improve forecasts one to four quarters ahead: unemployment moves at the same time as delinquency, so it gives no lead time.
+- **Watch delinquency itself.** In real time, adding unemployment does not substancially improve forecasts one to four quarters ahead: unemployment moves at the same time as delinquency, so it gives no lead time.
 - **Use unemployment for scenario analysis.** Each additional point of unemployment raises delinquency by about **0.15 points** within two quarters.
 - **Treat this as a lower bound.** In 2008, the rise in unemployment explains only about half of the surge in delinquency, which started in mortgage and consumer credit before it reached the labour market.
 - **Fed 2026 severely adverse scenario** (unemployment peaking at 10% in 2027 Q3, house prices down about 30%): delinquency rises from 2.62% to **3.25%** through job losses alone, and to around **3.9%** once a 2008-type housing and credit shock is accounted for. Under the baseline, it eases to about 2.35% by 2029 Q1.
